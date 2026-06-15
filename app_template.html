@@ -15,7 +15,7 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45}
   a{color:#74b6f5}
-  .wrap{max-width:1180px;margin:0 auto;padding:18px 18px 60px}
+  .wrap{max-width:1320px;margin:0 auto;padding:14px 18px}
   h1{font-size:20px;margin:0;letter-spacing:.2px}
   h1 .sub{color:var(--muted);font-weight:400;font-size:13px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
@@ -48,8 +48,8 @@
   .stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .stat .v{font-size:18px;font-weight:700}
   /* layout */
-  .cols{display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start}
-  @media(max-width:820px){.cols{grid-template-columns:1fr}}
+  @media(min-width:1500px){ .wrap{max-width:1560px} }
+  @media(min-width:1960px){ .wrap{max-width:1880px} }
   .sticky{position:sticky;top:12px}
   .route{max-height:78vh;overflow:auto}
   .route h3,.plan h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
@@ -59,10 +59,13 @@
   .stop .meta{color:var(--muted);font-size:12px}
   .stop .rank{color:var(--accent);font-weight:700;width:22px;text-align:right}
   /* boss group */
-  .boss{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden;background:var(--panel)}
-  .boss > header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel2);cursor:pointer}
-  .boss > header .name{font-weight:700;font-size:15px}
-  .boss > header .count{color:var(--muted);font-size:12px}
+  .boss{border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden;background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:border-color .12s}
+  .boss:hover{border-color:#3b475a}
+  .boss > header{display:flex;align-items:center;gap:8px;padding:12px 15px;background:var(--panel2);border-bottom:1px solid var(--line)}
+  .boss > header .name{font-weight:700;font-size:15px;letter-spacing:.2px}
+  .bchip{font-size:11px;padding:2px 9px;border-radius:20px;background:#10141a;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .bchip.kills{color:var(--accent);border-color:#5a4a1f}
+  .boss .killhead{padding:5px 14px;border-top:1px solid var(--line);background:#1a212b;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .task{display:flex;gap:11px;align-items:flex-start;padding:9px 14px;border-top:1px solid var(--line)}
   .task:hover{background:#1f2731}
   .task.done{opacity:.5}
@@ -76,8 +79,12 @@
   .tag.lock{color:#e8674f;border-color:#5a2a22}
   .task .body{flex:1 1 auto;min-width:0}
   .task .tname{font-weight:600}
-  .task .tname s{color:var(--muted)}
+  .wlink{color:inherit;text-decoration:none}
+  .wlink:hover{color:var(--accent);text-decoration:underline}
+  .wlink.struck{text-decoration:line-through;color:var(--muted)}
+  .plan .wlink{color:var(--ink)}
   .task .tdesc{color:var(--muted);font-size:12.5px}
+  .task .implies{color:var(--accent);font-size:12px;margin-top:2px}
   .task .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
   .tag{font-size:11px;padding:1px 7px;border-radius:5px;background:#10141a;border:1px solid var(--line);color:var(--muted)}
   .tag.tier{color:#14181e;font-weight:700;border:none}
@@ -95,12 +102,48 @@
   .plan ul.ptasks{margin:0;padding-left:18px;list-style:disc}
   .plan ul.ptasks li{margin:2px 0}
   .plan ul.ptasks li.extra{opacity:.82}
+  /* shared stat boxes + difficulty bar (used in the detail header) */
+  .pcstats{display:flex;gap:8px}
+  .pcstats .stat{flex:1;min-width:0;background:#10141a;border:1px solid var(--line);border-radius:8px;padding:9px 6px;text-align:center}
+  .pcstats .stat .v{font-size:20px;font-weight:800;line-height:1.05}
+  .pcstats .stat .k{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px}
+  .diffbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:#10141a}
+  .diffbar>span{display:block}
+  .difflabels{display:flex;flex-wrap:wrap;gap:4px 12px;padding-top:8px;font-size:11.5px;color:var(--muted)}
+  .difflabel{display:inline-flex;align-items:center;gap:5px}
+  /* master–detail panels */
+  .panels{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:start}
+  @media(max-width:880px){.panels{grid-template-columns:1fr}}
+  /* desktop app-shell: clamp to one viewport; top bar fixed, panels fill the rest and scroll internally */
+  @media(min-width:881px){
+    body{overflow:hidden}
+    .wrap{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+    .panels{flex:1 1 auto;min-height:0;align-items:stretch}
+    .master,.detail{height:100%}
+  }
+  .master{overflow:auto;padding:12px}
+  .msection{font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin:12px 4px 5px;padding-top:7px;border-top:1px solid var(--line)}
+  .msection.on{color:var(--accent)}
+  .msection.off{color:var(--muted)}
+  .mhead{margin:2px 4px 10px}
+  .mtitle{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .mrow{padding:9px 10px;border:1px solid transparent;border-radius:9px;cursor:pointer;margin-bottom:4px}
+  .mrow:hover{background:var(--panel2)}
+  .mrow.sel{background:var(--panel2);border-color:var(--accent)}
+  .mname{font-weight:600;font-size:13.5px}
+  .mpts{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .mmeta{color:var(--muted);font-size:11.5px;margin:2px 0 5px}
+  .mbar{display:flex;height:6px;border-radius:4px;overflow:hidden;background:#10141a}
+  .pathstar{color:var(--accent);font-size:12px}
+  .detail{padding:0;overflow:auto}
+  .dhead{padding:14px 16px}
+  .dname{font-size:18px;font-weight:700;color:var(--ink)}
   .status{font-size:12.5px;min-height:16px}
   .status.err{color:var(--bad)} .status.ok{color:var(--good)}
   details.fallback{margin-top:10px}
   details.fallback summary{cursor:pointer;color:var(--muted);font-size:13px}
   .hint{font-size:12px;color:var(--muted)}
-  .toolbar{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:4px}
+  .toolbar{padding-top:4px}
 </style>
 </head>
 <body>
@@ -147,15 +190,13 @@
   <!-- header progress -->
   <div class="card" id="progress"></div>
 
-  <!-- easiest path (expandable per-boss, with convenient extras nested in each) -->
-  <div class="card plan" id="plan"></div>
-
-  <!-- filters -->
+  <!-- filters (top-level controls; drive the master list and detail) -->
   <div class="card toolbar" id="filters"></div>
 
-  <div class="cols">
-    <div class="route card sticky" id="route"></div>
-    <div id="list"></div>
+  <!-- master–detail: bosses ranked by ease (left) + full detail of the selected boss (right) -->
+  <div class="panels">
+    <div class="card master" id="master"></div>
+    <div class="card detail" id="detail"></div>
   </div>
 
   <div class="muted" style="font-size:11.5px;margin-top:20px">
@@ -247,6 +288,48 @@ function easeOf(t){
 }
 TASKS.forEach(t=>{ t.ease = easeOf(t); });
 
+/* ---------- single-kill relations graph (audited per boss) ---------- */
+// RELATIONS[boss] = { c:[[a,b],...] conflict pairs (can't share a kill),
+//                     i:[[a,b],...] implication pairs (completing a also completes b) }
+const RELATIONS = /*__RELATIONS__*/{};
+const byId = new Map(TASKS.map(t=>[t.id,t]));
+const wikiUrl = t => 'https://oldschool.runescape.wiki/w/Special:Search?search='+encodeURIComponent(t.name);
+const EMPTY_SET = new Set();
+const pkey=(a,b)=> a<b ? a+'-'+b : b+'-'+a;
+const CONFLICT = new Map();   // boss -> Set of conflict pair keys
+const IMPLIES = new Map();    // task id -> [ids it auto-completes in the same kill]
+for(const boss in RELATIONS){
+  const r=RELATIONS[boss];
+  CONFLICT.set(boss, new Set((r.c||[]).map(([a,b])=>pkey(a,b))));
+  for(const [a,b] of (r.i||[])){ if(!IMPLIES.has(a)) IMPLIES.set(a,[]); IMPLIES.get(a).push(b); }
+}
+// Minimum kills to clear a set of tasks = graph-colour the conflict graph: each colour is one
+// kill (a clique of mutually-compatible tasks). Greedy largest-degree-first (optimal on these tiny graphs).
+function colourKills(ids, cset){
+  const deg=new Map(ids.map(id=>[id,0]));
+  for(let i=0;i<ids.length;i++) for(let j=i+1;j<ids.length;j++)
+    if(cset.has(pkey(ids[i],ids[j]))){ deg.set(ids[i],deg.get(ids[i])+1); deg.set(ids[j],deg.get(ids[j])+1); }
+  const order=[...ids].sort((x,y)=>deg.get(y)-deg.get(x));
+  const colour=new Map();
+  for(const id of order){
+    const used=new Set();
+    for(const o of order) if(colour.has(o) && cset.has(pkey(id,o))) used.add(colour.get(o));
+    let c=0; while(used.has(c)) c++; colour.set(id,c);
+  }
+  return colour;
+}
+// Minimum kills to clear a set of (incomplete) tasks at one boss: kill-count ladder + conflict-graph cover.
+function killStats(monster, tasks){
+  const incKC=tasks.filter(t=>'kc' in t).map(t=>t.kc);
+  const ladder=incKC.length?Math.max(Math.max(...incKC), incKC.length):0;
+  const ids=new Set(tasks.map(t=>t.id)), away=new Set();
+  for(const t of tasks) for(const b of (IMPLIES.get(t.id)||[])) if(ids.has(b)) away.add(b);
+  const cover=tasks.filter(t=>!('kc' in t) && !away.has(t.id)).map(t=>t.id);
+  const colour=colourKills(cover, CONFLICT.get(monster)||EMPTY_SET);
+  const nonKC=cover.length?Math.max(...colour.values())+1:0;
+  return Math.max(ladder, nonKC, tasks.length?1:0);
+}
+
 /* ---------- state ---------- */
 const LS_DONE='osrs_ca_done', LS_SKIP='osrs_ca_skip', LS_FILTERS='osrs_ca_filters', LS_LEVELS='osrs_ca_levels', LS_QUESTS='osrs_ca_quests';
 let done = new Set();
@@ -281,21 +364,63 @@ function totalPoints(){ let p=0; for(const t of TASKS) if(done.has(t.id)) p+=t.p
 function currentTier(pts){ let cur=null; for(const x of THRESH_ORDER){ if(pts>=x.pts) cur=x.tier; } return cur; }
 function nextTier(pts){ for(const x of THRESH_ORDER){ if(pts<x.pts) return x; } return null; }
 
+// shared filter predicate (tier/type/category) — drives the plan, route and list together
+function passesFilter(t){
+  // ui.cats = categories to FILTER OUT (everything is included by default)
+  return ui.tiers.has(t.tier) && ui.types.has(t.type) &&
+    ![...ui.cats].some(c=>CAT_SETS[c].has(t.monster));
+}
+function matchesSearch(t){ if(!ui.q) return true; const q=ui.q.toLowerCase();
+  return t.name.toLowerCase().includes(q)||t.monster.toLowerCase().includes(q)||t.description.toLowerCase().includes(q); }
+function filtersActive(){ return ui.tiers.size<TIERS.length || ui.types.size<TYPES.length || ui.cats.size>0; }
+
 function bossAgg(){
   const m=new Map();
   for(const t of TASKS){
-    if(!ui.tiers.has(t.tier)) continue;
-    if(!ui.types.has(t.type)) continue;
-    if(ui.cats.size && ![...ui.cats].some(c=>CAT_SETS[c].has(t.monster))) continue;
-    if(ui.q){ const q=ui.q.toLowerCase();
-      if(!(t.name.toLowerCase().includes(q)||t.monster.toLowerCase().includes(q)||t.description.toLowerCase().includes(q))) continue; }
-    if(!m.has(t.monster)) m.set(t.monster,{monster:t.monster,tasks:[],trip:0,remain:0,total:0});
+    if(!passesFilter(t) || !matchesSearch(t)) continue;
+    if(!m.has(t.monster)) m.set(t.monster,{monster:t.monster,tasks:[],trip:0,remain:0,total:0,compSum:0,remainPts:0});
     const g=m.get(t.monster); g.tasks.push(t); g.total++;
-    if(!done.has(t.id) && !skipped.has(t.id) && !isLocked(t)){ g.trip+=t.ease; g.remain++; }
+    if(!done.has(t.id) && !skipped.has(t.id) && !isLocked(t)){ g.trip+=t.ease; g.compSum+=(t.completion||0); g.remainPts+=t.points; g.remain++; }
   }
   let arr=[...m.values()];
-  for(const g of arr) g.tasks.sort((a,b)=> b.ease-a.ease || a.points-b.points);
+  for(const g of arr){
+    g.tasks.sort((a,b)=> b.ease-a.ease || a.points-b.points);
+    // kill efficiency: how many CAs you knock out, and the kills it takes.
+    // Kill-count CAs are nested thresholds — reaching the top one clears them all,
+    // and the boss's other tasks get done during that same grind.
+    const remain=g.tasks.filter(t=>!done.has(t.id)&&!skipped.has(t.id)&&!isLocked(t));
+    const incKC=remain.filter(t=>'kc' in t).map(t=>t.kc);
+    const maxIncKC=incKC.length?Math.max(...incKC):0;
+    const doneKCmax=g.tasks.reduce((mx,t)=>(done.has(t.id)&&'kc' in t)?Math.max(mx,t.kc):mx,0);
+    const ladder=maxIncKC>0?Math.max(maxIncKC-doneKCmax, incKC.length):0;   // kills still to grind
+    // non-kill-count tasks: drop free-riders (implied by another remaining task), then
+    // graph-colour the conflict graph on the rest — colour count = single-kill cover.
+    const remainIds=new Set(remain.map(t=>t.id));
+    const impliedAway=new Set();
+    for(const t of remain){ for(const b of (IMPLIES.get(t.id)||[])) if(remainIds.has(b)) impliedAway.add(b); }
+    const nonKC=remain.filter(t=>!('kc' in t));
+    const coverIds=nonKC.filter(t=>!impliedAway.has(t.id)).map(t=>t.id);
+    const cset=CONFLICT.get(g.monster)||EMPTY_SET;
+    const colour=colourKills(coverIds, cset);
+    const nonKCkills = coverIds.length ? (Math.max(...colour.values())+1) : 0;
+    // give every remaining non-KC task a kill-colour (free-riders inherit an implier's colour) for display
+    g.colourOf=new Map(colour);
+    for(const t of nonKC) if(!g.colourOf.has(t.id)){
+      let col=0; for(const [a,bs] of IMPLIES) if(colour.has(a) && bs.includes(t.id)){ col=colour.get(a); break; }
+      g.colourOf.set(t.id, col);
+    }
+    g.caCount=remain.length;
+    g.ladder=ladder;
+    g.killsNeeded=Math.max(ladder, nonKCkills, remain.length?1:0);
+    g.killEff=g.killsNeeded? g.caCount/g.killsNeeded : 0;
+    g.avgEase=g.remain? g.trip/g.remain : 0;
+    g.avgComp=g.remain? g.compSum/g.remain : 0;
+  }
   if(ui.sort==='az') arr.sort((a,b)=>a.monster.localeCompare(b.monster));
+  else if(ui.sort==='kills') arr.sort((a,b)=> b.killEff-a.killEff || b.caCount-a.caCount || a.monster.localeCompare(b.monster));
+  else if(ui.sort==='ease') arr.sort((a,b)=> b.avgEase-a.avgEase || a.monster.localeCompare(b.monster));
+  else if(ui.sort==='comp') arr.sort((a,b)=> b.avgComp-a.avgComp || a.monster.localeCompare(b.monster));
+  else if(ui.sort==='points') arr.sort((a,b)=> b.remainPts-a.remainPts || a.monster.localeCompare(b.monster));
   else arr.sort((a,b)=> b.trip-a.trip || a.monster.localeCompare(b.monster));
   return arr;
 }
@@ -336,98 +461,59 @@ function computePlan(){
   const pts=totalPoints(), next=nextTier(pts);
   if(!next) return {next:null};
   const need=next.pts-pts;
-  const pool=TASKS.filter(t=>!done.has(t.id) && !skipped.has(t.id) && !isLocked(t)).sort((a,b)=> b.ease-a.ease || a.points-b.points);
+  const pool=TASKS.filter(t=>!done.has(t.id) && !skipped.has(t.id) && !isLocked(t) && passesFilter(t)).sort((a,b)=> b.ease-a.ease || a.points-b.points);
   const pick=[]; let acc=0;
   for(const t of pool){ if(acc>=need) break; pick.push(t); acc+=t.points; }
   return {next,need,pick,acc,short:acc<need};
 }
 
-const TYPE_CONV={"Kill Count":1.0,"Stamina":0.62,"Mechanical":0.5,"Restriction":0.45,"Perfection":0.32,"Speed":0.25};
-let expandState={};   // boss -> explicit open/closed; default = open when boss has path tasks
-function renderPlan(){
-  const {next,need,pick,acc,short}=computePlan();
-  const host=$('#plan'); host.innerHTML='';
-  if(!next){ host.appendChild(el('h3',{},'Easiest path')); host.appendChild(el('div',{class:'muted'},'Every tier unlocked — nothing left to plan. 🏆')); return; }
-  const curPts=totalPoints();
+let selectedBoss=null;
+const statBox=(v,k)=>el('div',{class:'stat'},[el('div',{class:'v'},String(v)),el('div',{class:'k'},k)]);
 
-  // convenient extras: incomplete, not skipped, not in the path, at an accessible boss
-  // (a boss on the route, or one you've already cleared a CA at → you have access & know the fight)
-  const planIds=new Set(pick.map(t=>t.id));
-  const planBosses=new Set(pick.map(t=>t.monster));
-  const doneBosses=new Set(TASKS.filter(t=>done.has(t.id)).map(t=>t.monster));
-  const accessible=new Set([...planBosses,...doneBosses]);
-  let cand=TASKS.filter(t=>!done.has(t.id)&&!skipped.has(t.id)&&!isLocked(t)&&!planIds.has(t.id)&&accessible.has(t.monster));
-  for(const t of cand){ const ti=TIERS.indexOf(t.tier);
-    t._conv=0.6*(TYPE_CONV[t.type]??0.4)+0.4*(1-ti/5)+(planBosses.has(t.monster)?0.15:0); }
-  cand.sort((a,b)=> b._conv-a._conv || a.completion-b.completion);
-  cand=cand.slice(0,18);
+// LEFT panel: every boss with remaining tasks, ranked by ease, with a compact overview.
+function renderMaster(){
+  const host=$('#master'); host.innerHTML='';
+  const groups=bossAgg().filter(g=>g.remain>0);
+  const plan=computePlan();
+  const pathBosses=new Set((plan.pick||[]).map(t=>t.monster));
+  host.appendChild(el('div',{class:'mhead'},[
+    el('div',{class:'mtitle'},'Bosses · '+({route:'route value',ease:'ease',comp:'completion %',points:'points',kills:'CAs/kill',az:'A–Z'}[ui.sort]||'ease')),
+    el('div',{class:'muted',style:'font-size:12px;margin-top:2px'},
+      plan.next ? (plan.short ? `${plan.need} pts to ${plan.next.tier} — not reachable within filters`
+                              : `${plan.need} pts to ${plan.next.tier}`)
+                : 'All tiers complete 🏆')
+  ]));
+  if(!groups.length){ host.appendChild(el('div',{class:'muted',style:'padding:10px 2px'},'No remaining tasks match your filters.')); return; }
+  if(!selectedBoss || !groups.some(g=>g.monster===selectedBoss)) selectedBoss=groups[0].monster;
 
-  // one group per boss, holding both path tasks and extras
-  const gmap=new Map();
-  const ensure=b=>{ if(!gmap.has(b)) gmap.set(b,{boss:b,path:[],extras:[],pathPts:0,extraPts:0,ease:0}); return gmap.get(b); };
-  for(const t of pick){ const g=ensure(t.monster); g.path.push(t); g.pathPts+=t.points; g.ease+=t.ease; }
-  for(const t of cand){ ensure(t.monster).extras.push(t); }
-  for(const g of gmap.values()) g.extraPts=g.extras.reduce((s,t)=>s+t.points,0);
-  const groups=[...gmap.values()].sort((a,b)=>{
-    const ap=a.path.length>0, bp=b.path.length>0;
-    if(ap!==bp) return ap?-1:1;                                  // route bosses first
-    if(ap) return b.ease-a.ease || a.boss.localeCompare(b.boss);  // then easiest trip
-    return b.extras.length-a.extras.length || a.boss.localeCompare(b.boss);
-  });
-  const extrasTotal=groups.reduce((s,g)=>s+g.extraPts,0);
+  const mrow=g=>{
+    const sel=g.monster===selectedBoss;
+    const remain=g.tasks.filter(t=>!done.has(t.id)&&!skipped.has(t.id)&&!isLocked(t));
+    const remainPts=remain.reduce((s,t)=>s+t.points,0);
+    const tc={}; for(const t of remain) tc[t.tier]=(tc[t.tier]||0)+1;
+    const denom=remain.length||1;
+    const bar=el('div',{class:'mbar'});
+    for(const tier of TIERS){ if(!tc[tier]) continue;
+      bar.appendChild(el('span',{style:`width:${100*tc[tier]/denom}%;background:${tierColor(tier)}`,title:`${tc[tier]} ${tier}`})); }
+    return el('div',{class:'mrow'+(sel?' sel':''),onClick:()=>{selectedBoss=g.monster;renderMaster();renderDetail();}},[
+      el('div',{class:'row',style:'gap:6px;align-items:baseline'},[
+        el('span',{class:'mname grow'},g.monster),
+        el('span',{class:'mpts'},`${remainPts} pt`)
+      ]),
+      el('div',{class:'mmeta'},`≈${g.killsNeeded} kill${g.killsNeeded!==1?'s':''} · ${g.caCount} task${g.caCount!==1?'s':''}`),
+      bar
+    ]);
+  };
+  const section=(title,arr,cls)=>{ if(!arr.length) return;
+    host.appendChild(el('div',{class:'msection '+cls},`${title} · ${arr.length}`));
+    for(const g of arr) host.appendChild(mrow(g)); };
 
-  // running path total, computed in display order so collapsing a group can't skew it
-  const runById=new Map(); let rr=0;
-  for(const g of groups) for(const t of g.path){ rr+=t.points; runById.set(t.id,rr); }
-
-  // heading + the two separate totals (path-only vs. with-extras)
-  host.appendChild(el('h3',{},`Easiest path to ${next.tier}`));
-  const reach=p=>currentTier(p)||'no tier yet';
-  let sum;
-  if(short){
-    sum=`You've skipped too many tasks to reach ${next.tier} — only ${acc} of the ${need} points needed are still available. Un-skip some to fill the gap.`;
+  const onPath=groups.filter(g=>pathBosses.has(g.monster));
+  if(plan.next && onPath.length){
+    section('On the path', onPath, 'on');
+    section('Not on the path', groups.filter(g=>!pathBosses.has(g.monster)), 'off');
   } else {
-    sum=`${need} pts needed — path below = ${acc} pts across ${pick.length} tasks → ${curPts+acc} total, reaching ${next.tier}.`;
-    if(extrasTotal) sum+=` Grab every convenient extra too (+${extrasTotal} pts, not part of the path) → ${curPts+acc+extrasTotal} total (${reach(curPts+acc+extrasTotal)}).`;
-  }
-  host.appendChild(el('div',{class:'muted',style:'margin-bottom:8px'},sum));
-
-  const mkLi=(t,trail,isExtra)=>el('li',{class:isExtra?'extra':''},[
-    el('span',{},`${t.name} `),
-    el('span',{class:'tag tier',style:`background:${tierColor(t.tier)};display:inline-block`},`${t.tier} ${t.points}pt`),
-    el('span',{class:'muted'},` · ${Math.round(t.completion??0)}% comp${isExtra?' · '+t.type:''} `),
-    isExtra? el('span',{class:'tag skip'}, t.type==='Kill Count'?'stacks with kills':(planBosses.has(t.monster)?'no extra trip':'familiar fight')) : null,
-    el('span',{class:'run'}, trail),
-    el('button',{class:'skipbtn',style:'margin-left:8px',title:'Skip — exclude',
-      onClick:()=>{skipped.add(t.id);saveSkip();renderAll();}},'skip'),
-    el('button',{class:'skipbtn',style:'margin-left:4px',title:'Mark done',
-      onClick:()=>{done.add(t.id);saveDone();renderAll();}},'✓ done')
-  ]);
-
-  for(const g of groups){
-    const hasPath=g.path.length>0;
-    const isOpen=(g.boss in expandState)?expandState[g.boss]:hasPath;
-    const sec=el('div',{class:'pgroup'});
-    const bits=[];
-    if(g.path.length) bits.push(`${g.path.length} path`);
-    if(g.extras.length) bits.push(`${g.extras.length} extra`);
-    let ptlabel=`${g.pathPts}pt`; if(g.extraPts) ptlabel+=` (+${g.extraPts})`;
-    sec.appendChild(el('div',{class:'pbhead pbtoggle',onClick:()=>{expandState[g.boss]=!isOpen;renderPlan();}},[
-      el('span',{class:'caret'}, isOpen?'▾ ':'▸ '),
-      el('span',{class:'pbname'}, g.boss),
-      el('span',{class:'muted'}, ` · ${bits.join(' · ')} · ${ptlabel}`)
-    ]));
-    if(isOpen){
-      if(hasPath){ const ul=el('ul',{class:'ptasks'});
-        for(const t of g.path) ul.appendChild(mkLi(t,`→ ${runById.get(t.id)}/${need}`,false));
-        sec.appendChild(ul); }
-      if(g.extras.length){
-        sec.appendChild(el('div',{class:'extrahead muted'}, hasPath?'Also here — optional, not counted toward the path:':'Convenient extras — not counted toward the path:'));
-        const ul=el('ul',{class:'ptasks'});
-        for(const t of g.extras) ul.appendChild(mkLi(t,`+${t.points}pt`,true));
-        sec.appendChild(ul); }
-    }
-    host.appendChild(sec);
+    for(const g of groups) host.appendChild(mrow(g));
   }
 }
 
@@ -445,17 +531,19 @@ function renderFilters(){
     typeRow.appendChild(el('span',{class:'pill'+(on?'':' off'),onClick:()=>{on?ui.types.delete(t):ui.types.add(t);renderAll();}},t));
   });
   const catRow=el('div',{class:'row'},[el('span',{class:'k',style:'color:var(--muted)'},'Category'),
-    el('span',{class:'hint',style:'margin-left:-4px'},'(off = all)')]);
+    el('span',{class:'hint',style:'margin-left:-4px'},'(dim = filtered out)')]);
   CAT_NAMES.forEach(c=>{
-    const on=ui.cats.has(c);
-    catRow.appendChild(el('span',{class:'pill'+(on?'':' off'),title:`${CATS[c].length} bosses`,
-      onClick:()=>{on?ui.cats.delete(c):ui.cats.add(c);saveFilters();renderAll();}},c));
+    const included=!ui.cats.has(c);
+    catRow.appendChild(el('span',{class:'pill'+(included?'':' off'),title:`${CATS[c].length} bosses · click to ${included?'filter out':'include'}`,
+      onClick:()=>{ui.cats.has(c)?ui.cats.delete(c):ui.cats.add(c);saveFilters();renderAll();}},c));
   });
   const ctrl=el('div',{class:'row',style:'margin-top:4px'},[
     el('input',{id:'search',placeholder:'Search boss, task, description…',value:ui.q,style:'min-width:240px',
-      onInput:e=>{ui.q=e.target.value;renderListOnly();}}),
-    el('button',{onClick:()=>{ui.sort=ui.sort==='route'?'az':'route';saveFilters();renderAll();}},
-      ui.sort==='route'?'Sort: Route value ▾':'Sort: A–Z ▾'),
+      onInput:e=>{ui.q=e.target.value;renderMaster();renderDetail();}}),
+    (()=>{ const opts={route:'Sort: route value (total ease)',ease:'Sort: calculated ease',comp:'Sort: completion %',points:'Sort: points',kills:'Sort: CAs per kill',az:'Sort: A–Z'};
+      const sel=el('select',{title:'Order the boss list',onChange:e=>{ui.sort=e.target.value;saveFilters();renderAll();}});
+      for(const v in opts){ const o=el('option',{value:v}, opts[v]); if(ui.sort===v) o.setAttribute('selected','selected'); sel.appendChild(o); }
+      return sel; })(),
     el('label',{class:'row',style:'gap:6px;cursor:pointer'},[
       el('input',{type:'checkbox',...(ui.hideDone?{checked:'checked'}:{}),onChange:e=>{ui.hideDone=e.target.checked;saveFilters();renderAll();}}),
       'Hide completed']),
@@ -474,64 +562,81 @@ function renderFilters(){
 
 function bossId(name){ return 'boss-'+name.replace(/[^a-z0-9]+/gi,'-'); }
 
-function renderRoute(){
-  const host=$('#route'); host.innerHTML='';
-  host.appendChild(el('h3',{},'Expedition route'));
-  const arr=bossAgg().filter(g=>g.remain>0);
-  if(!arr.length){ host.appendChild(el('div',{class:'muted'},'No remaining tasks match your filters.')); return; }
-  arr.forEach((g,i)=>{
-    host.appendChild(el('div',{class:'stop',onClick:()=>{const t=document.getElementById(bossId(g.monster));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}},[
-      el('span',{class:'rank'},String(i+1)),
-      el('div',{class:'grow'},[el('div',{class:'n'},g.monster),
-        el('div',{class:'meta'},`${g.remain} task${g.remain>1?'s':''} left · value ${g.trip.toFixed(2)}`)])
-    ]));
-  });
+// RIGHT panel: full detail for the selected boss.
+function renderDetail(){
+  const host=$('#detail'); host.innerHTML='';
+  const g=bossAgg().find(x=>x.monster===selectedBoss);
+  if(!g){ host.appendChild(el('div',{class:'muted',style:'padding:18px'},'Select a boss on the left.')); return; }
+  const remain=g.tasks.filter(t=>!done.has(t.id)&&!skipped.has(t.id)&&!isLocked(t));
+  const remainPts=remain.reduce((s,t)=>s+t.points,0);
+  const tc={}; for(const t of remain) tc[t.tier]=(tc[t.tier]||0)+1;
+  const denom=remain.length||1;
+  const head=el('div',{class:'dhead'});
+  head.appendChild(el('div',{class:'row',style:'align-items:center;gap:10px'},[
+    el('a',{href:'https://oldschool.runescape.wiki/w/Special:Search?search='+encodeURIComponent(g.monster),target:'_blank',rel:'noopener',class:'wlink dname grow'},g.monster),
+    el('button',{class:'ghost',style:'font-size:12px;padding:5px 10px',onClick:()=>{ g.tasks.forEach(t=>{if(!skipped.has(t.id))done.add(t.id);}); saveDone(); renderAll(); }},'✓ all here')
+  ]));
+  head.appendChild(el('div',{class:'pcstats',style:'padding:12px 0 0'},[
+    statBox(remainPts,'points'), statBox(remain.length,'tasks left'), statBox('≈'+g.killsNeeded,'min kills')
+  ]));
+  if(remain.length){
+    const bar=el('div',{class:'diffbar',style:'margin-top:11px'}), labels=el('div',{class:'difflabels'});
+    for(const tier of TIERS){ if(!tc[tier]) continue;
+      bar.appendChild(el('span',{style:`width:${100*tc[tier]/denom}%;background:${tierColor(tier)}`,title:`${tc[tier]} ${tier}`}));
+      labels.appendChild(el('span',{class:'difflabel',title:`${tc[tier]} ${tier}`},[el('span',{class:'dot',style:`background:${tierColor(tier)}`}),`${tc[tier]} ${tier}`])); }
+    head.appendChild(bar); head.appendChild(labels);
+  }
+  host.appendChild(head);
+  const shown=g.tasks.filter(t=> !(ui.hideDone&&done.has(t.id)) && !(ui.hideSkipped&&skipped.has(t.id)) && !(ui.hideLocked&&isLocked(t)) );
+  if(!shown.length){ host.appendChild(el('div',{class:'muted',style:'padding:14px 16px'},'Nothing to show here — adjust the Hide completed / skipped / locked toggles.')); return; }
+  bossTaskList(g, shown, host);
 }
 
-function renderListOnly(){
-  const host=$('#list'); host.innerHTML='';
-  const arr=bossAgg();
-  const passes = t => !(ui.hideDone && done.has(t.id)) && !(ui.hideSkipped && skipped.has(t.id)) && !(ui.hideLocked && isLocked(t));
-  const groups = arr.map(g=>({g, shown:g.tasks.filter(passes)})).filter(x=>x.shown.length);
-  if(!groups.length){ host.appendChild(el('div',{class:'card muted'},'Nothing matches your filters.')); return; }
-  for(const {g,shown} of groups){
-    const open=el('div',{class:'boss',id:bossId(g.monster)});
-    const head=el('header',{},[
-      el('div',{class:'grow'},[el('span',{class:'name'},g.monster),
-        el('span',{class:'count'},`  ${g.remain} left · ${g.total} total`)]),
-      el('button',{class:'ghost',onClick:e=>{e.stopPropagation(); g.tasks.forEach(t=>{if(!skipped.has(t.id))done.add(t.id);}); saveDone(); renderAll();}},'✓ all here')
+// Render one boss's tasks into `host`, grouped by single kill (conflict-graph colour).
+function bossTaskList(g, shown, host){
+  const taskRow=t=>{
+    const isDone=done.has(t.id), isSkip=skipped.has(t.id), lock=isLocked(t);
+    const cb=el('input',{type:'checkbox',class:'cb',...(isDone?{checked:'checked'}:{}),
+      onChange:()=>{isDone?done.delete(t.id):done.add(t.id);saveDone();renderAll();}});
+    const skipBtn=el('button',{class:'skipbtn',
+      title:isSkip?'Bring this task back':'Skip — exclude from the plan',
+      onClick:()=>{ isSkip?skipped.delete(t.id):skipped.add(t.id); saveSkip(); renderAll(); }},
+      isSkip?'↺ unskip':'skip');
+    return el('div',{class:'task'+(isDone?' done':'')+(isSkip?' skipped':'')+(lock?' locked':'')},[
+      cb,
+      el('div',{class:'body'},[
+        el('div',{class:'tname'}, el('a',{href:wikiUrl(t),target:'_blank',rel:'noopener',class:'wlink'+(isDone?' struck':''),title:'Open on the OSRS Wiki'},t.name)),
+        el('div',{class:'tdesc'},t.description),
+        el('div',{class:'tags'},[
+          el('span',{class:'tag tier',style:`background:${tierColor(t.tier)}`},`${t.tier} · ${t.points}pt`),
+          el('span',{class:'tag'},t.type),
+          el('span',{class:'tag'},`${t.completion==null?'?':t.completion+'%'} comp`),
+          el('span',{class:'tag ease'},`ease ${t.ease.toFixed(2)}`),
+          lock? el('span',{class:'tag lock',title:'Locked — requires: '+lockReasons(t).join(', ')},`🔒 ${lockReasons(t).join(', ')}`) : null,
+          isSkip? el('span',{class:'tag skip'},'skipped') : null
+        ])
+      ]),
+      skipBtn
     ]);
-    open.appendChild(head);
-    for(const t of shown){
-      const isDone=done.has(t.id), isSkip=skipped.has(t.id), lock=isLocked(t);
-      const cb=el('input',{type:'checkbox',class:'cb',...(isDone?{checked:'checked'}:{}),
-        onChange:()=>{isDone?done.delete(t.id):done.add(t.id);saveDone();renderAll();}});
-      const skipBtn=el('button',{class:'skipbtn',
-        title:isSkip?'Bring this task back into the plan':'Skip — exclude from the plan & route',
-        onClick:()=>{ isSkip?skipped.delete(t.id):skipped.add(t.id); saveSkip(); renderAll(); }},
-        isSkip?'↺ unskip':'skip');
-      open.appendChild(el('div',{class:'task'+(isDone?' done':'')+(isSkip?' skipped':'')+(lock?' locked':'')},[
-        cb,
-        el('div',{class:'body'},[
-          el('div',{class:'tname'}, isDone? el('s',{},t.name) : t.name),
-          el('div',{class:'tdesc'},t.description),
-          el('div',{class:'tags'},[
-            el('span',{class:'tag tier',style:`background:${tierColor(t.tier)}`},`${t.tier} · ${t.points}pt`),
-            el('span',{class:'tag'},t.type),
-            el('span',{class:'tag'},`${t.completion==null?'?':t.completion+'%'} comp`),
-            el('span',{class:'tag ease'},`ease ${t.ease.toFixed(2)}`),
-            lock? el('span',{class:'tag lock',title:'Locked — requires: '+lockReasons(t).join(', ')},`🔒 ${lockReasons(t).join(', ')}`) : null,
-            isSkip? el('span',{class:'tag skip'},'skipped') : null
-          ])
-        ]),
-        skipBtn
-      ]));
-    }
-    host.appendChild(open);
+  };
+  const sub=new Map();
+  for(const t of shown){ const k = ('kc' in t) ? 'kc' : (g.colourOf && g.colourOf.has(t.id) ? 'c'+g.colourOf.get(t.id) : 'x'); (sub.get(k)||sub.set(k,[]).get(k)).push(t); }
+  const colourKeys=[...sub.keys()].filter(k=>k[0]==='c').sort((a,b)=>sub.get(b).length-sub.get(a).length);
+  const ordered=[...colourKeys]; if(sub.has('kc')) ordered.push('kc'); if(sub.has('x')) ordered.push('x');
+  const showHeads = ordered.length>1 || colourKeys.some(k=>sub.get(k).length>1);
+  if(!showHeads){ for(const t of shown) host.appendChild(taskRow(t)); return; }
+  let ki=0;
+  for(const k of ordered){
+    const tasks=sub.get(k); let label;
+    if(k==='kc') label=`Kill-count grind · ≈${g.ladder} kill${g.ladder!==1?'s':''}`;
+    else if(k==='x') label='Other';
+    else { ki++; label=`Kill ${ki} · ${tasks.length} task${tasks.length>1?'s':''}`+(tasks.length>1?' in one kill':''); }
+    host.appendChild(el('div',{class:'killhead'}, label));
+    for(const t of tasks) host.appendChild(taskRow(t));
   }
 }
 
-function renderAll(){ saveFilters(); renderProgress(); renderPlan(); renderFilters(); renderRoute(); renderListOnly();
+function renderAll(){ saveFilters(); renderProgress(); renderFilters(); renderMaster(); renderDetail();
   const s=$('#search'); if(s&&document.activeElement!==s) s.value=ui.q; }
 
 function resetAll(){

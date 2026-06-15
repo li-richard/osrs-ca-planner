@@ -35,6 +35,7 @@ Everything except the live lookup (manual check-off, paste-import, points entry)
 | `data/parse.py` | Parses the wiki data into `data/tasks.json` |
 | `data/tasks.json` | Clean task dataset (637 tasks) |
 | `data/completion.json` | Crowdsourced completion rates from the wiki |
+| `data/relations.json` | Per-boss relation graph — `c` = conflict edges (tasks that can't share a kill), `i` = implication edges (completing one auto-completes another). The app graph-colours this live to find the fewest single kills. Audited against OSRS mechanics. |
 
 ## Rebuilding the data / app
 
@@ -52,7 +53,10 @@ python3 - <<'PY'
 import json
 tmpl=open('app_template.html').read()
 tasks=json.load(open('data/tasks.json'))
-open('osrs-combat-achievements.html','w').write(tmpl.replace('/*__TASKS__*/[]', json.dumps(tasks,separators=(',',':'))))
+rel=json.load(open('data/relations.json'))
+out=tmpl.replace('/*__TASKS__*/[]', json.dumps(tasks,separators=(',',':')))
+out=out.replace('/*__RELATIONS__*/{}', json.dumps(rel,separators=(',',':')))
+open('osrs-combat-achievements.html','w').write(out)
 PY
 ```
 
