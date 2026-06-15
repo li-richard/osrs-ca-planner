@@ -38,6 +38,8 @@
   .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:20px;
     border:1px solid var(--line);background:#10141a;font-size:12px;cursor:pointer;user-select:none}
   .pill.off{opacity:.4}
+  .pill .x{cursor:pointer;color:var(--muted);margin-left:1px}
+  .pill .x:hover{color:var(--bad)}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
   /* header progress */
   .ptsbig{font-size:30px;font-weight:800;line-height:1}
@@ -65,7 +67,12 @@
   .boss > header .name{font-weight:700;font-size:15px;letter-spacing:.2px}
   .bchip{font-size:11px;padding:2px 9px;border-radius:20px;background:#10141a;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
   .bchip.kills{color:var(--accent);border-color:#5a4a1f}
-  .boss .killhead{padding:5px 14px;border-top:1px solid var(--line);background:#1a212b;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .killgroup{margin-top:18px}
+  .killgroup:first-child{margin-top:6px}
+  .killhead{padding:0 16px 7px;font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .killhead .khn{color:var(--accent);font-weight:500}
+  .killhead .khsub{color:var(--muted);margin-left:7px;text-transform:none;letter-spacing:0;font-size:11.5px}
+  .killhead + .task{border-top:none}
   .task{display:flex;gap:11px;align-items:flex-start;padding:9px 14px;border-top:1px solid var(--line)}
   .task:hover{background:#1f2731}
   .task.done{opacity:.5}
@@ -222,6 +229,8 @@ const CATS = {
 };
 const CAT_NAMES = Object.keys(CATS);
 const CAT_SETS = {}; for(const k of CAT_NAMES) CAT_SETS[k]=new Set(CATS[k]);
+const BOSS_NAMES = [...new Set(TASKS.map(t=>t.monster))].filter(m=>m && m!=='N/A').sort();
+const BOSS_SET = new Set(BOSS_NAMES);
 // Per-boss access requirements (verified against the OSRS Wiki): q = required quests
 // (WikiSync exact names; must be completed = value 2), s = required skill levels.
 const REQS = {
@@ -340,8 +349,8 @@ try{ done = new Set(JSON.parse(localStorage.getItem(LS_DONE)||'[]')); }catch(e){
 try{ skipped = new Set(JSON.parse(localStorage.getItem(LS_SKIP)||'[]')); }catch(e){}
 try{ playerLevels = JSON.parse(localStorage.getItem(LS_LEVELS)||'null'); }catch(e){}
 try{ playerQuests = JSON.parse(localStorage.getItem(LS_QUESTS)||'null'); }catch(e){}
-let ui = {tiers:new Set(TIERS), types:new Set(TYPES), cats:new Set(), q:'', sort:'route', hideDone:true, hideSkipped:true, hideLocked:false};
-try{ const f=JSON.parse(localStorage.getItem(LS_FILTERS)||'null'); if(f){ui.sort=f.sort||'route'; ui.hideDone=f.hideDone!==false; ui.hideSkipped=f.hideSkipped!==false; ui.hideLocked=!!f.hideLocked; ui.cats=new Set((f.cats||[]).filter(c=>CAT_NAMES.includes(c)));} }catch(e){}
+let ui = {tiers:new Set(TIERS), types:new Set(TYPES), cats:new Set(), bosses:new Set(), q:'', sort:'route', hideDone:true, hideSkipped:true, hideLocked:false};
+try{ const f=JSON.parse(localStorage.getItem(LS_FILTERS)||'null'); if(f){ui.sort=f.sort||'route'; ui.hideDone=f.hideDone!==false; ui.hideSkipped=f.hideSkipped!==false; ui.hideLocked=!!f.hideLocked; ui.cats=new Set((f.cats||[]).filter(c=>CAT_NAMES.includes(c))); ui.bosses=new Set((f.bosses||[]).filter(b=>BOSS_SET.has(b)));} }catch(e){}
 
 const haveProfile = ()=> !!(playerLevels || playerQuests);
 // Why a task is unattainable for this account: missing quests + under-level skills. Empty = available.
@@ -357,7 +366,7 @@ const isLocked = t => lockReasons(t).length>0;
 const saveDone = ()=>localStorage.setItem(LS_DONE, JSON.stringify([...done]));
 const saveSkip = ()=>localStorage.setItem(LS_SKIP, JSON.stringify([...skipped]));
 const saveProfile = ()=>{ localStorage.setItem(LS_LEVELS, JSON.stringify(playerLevels)); localStorage.setItem(LS_QUESTS, JSON.stringify(playerQuests)); };
-const saveFilters = ()=>localStorage.setItem(LS_FILTERS, JSON.stringify({sort:ui.sort,hideDone:ui.hideDone,hideSkipped:ui.hideSkipped,hideLocked:ui.hideLocked,cats:[...ui.cats]}));
+const saveFilters = ()=>localStorage.setItem(LS_FILTERS, JSON.stringify({sort:ui.sort,hideDone:ui.hideDone,hideSkipped:ui.hideSkipped,hideLocked:ui.hideLocked,cats:[...ui.cats],bosses:[...ui.bosses]}));
 
 /* ---------- derived ---------- */
 function totalPoints(){ let p=0; for(const t of TASKS) if(done.has(t.id)) p+=t.points; return p; }
@@ -366,13 +375,14 @@ function nextTier(pts){ for(const x of THRESH_ORDER){ if(pts<x.pts) return x; } 
 
 // shared filter predicate (tier/type/category) — drives the plan, route and list together
 function passesFilter(t){
-  // ui.cats = categories to FILTER OUT (everything is included by default)
+  // ui.cats = categories to FILTER OUT; ui.bosses = bosses to narrow TO (empty = all)
   return ui.tiers.has(t.tier) && ui.types.has(t.type) &&
-    ![...ui.cats].some(c=>CAT_SETS[c].has(t.monster));
+    ![...ui.cats].some(c=>CAT_SETS[c].has(t.monster)) &&
+    (!ui.bosses.size || ui.bosses.has(t.monster));
 }
 function matchesSearch(t){ if(!ui.q) return true; const q=ui.q.toLowerCase();
   return t.name.toLowerCase().includes(q)||t.monster.toLowerCase().includes(q)||t.description.toLowerCase().includes(q); }
-function filtersActive(){ return ui.tiers.size<TIERS.length || ui.types.size<TYPES.length || ui.cats.size>0; }
+function filtersActive(){ return ui.tiers.size<TIERS.length || ui.types.size<TYPES.length || ui.cats.size>0 || ui.bosses.size>0; }
 
 function bossAgg(){
   const m=new Map();
@@ -557,7 +567,19 @@ function renderFilters(){
     (skipped.size? el('button',{class:'ghost',onClick:()=>{if(confirm(`Un-skip all ${skipped.size} skipped tasks?`)){skipped=new Set();saveSkip();renderAll();}}},`Un-skip all (${skipped.size})`) : null),
     el('button',{class:'ghost',onClick:resetAll},'Reset progress')
   ]);
-  host.appendChild(tierRow); host.appendChild(typeRow); host.appendChild(catRow); host.appendChild(ctrl);
+  const bossRow=el('div',{class:'row'},[el('span',{class:'k',style:'color:var(--muted)'},'Boss'),
+    el('span',{class:'hint',style:'margin-left:-4px'},'(empty = all)')]);
+  [...ui.bosses].sort().forEach(b=>{
+    bossRow.appendChild(el('span',{class:'pill'},[b+' ',
+      el('span',{class:'x',title:'Remove',onClick:()=>{ui.bosses.delete(b);saveFilters();renderAll();}},'✕')]));
+  });
+  const dl=el('datalist',{id:'bosslist'}); for(const b of BOSS_NAMES) dl.appendChild(el('option',{value:b}));
+  bossRow.appendChild(el('input',{list:'bosslist',placeholder:'Add boss…',style:'min-width:160px',
+    onChange:e=>{ const v=e.target.value.trim(); if(BOSS_SET.has(v) && !ui.bosses.has(v)){ ui.bosses.add(v); saveFilters(); renderAll(); } }}));
+  bossRow.appendChild(dl);
+  if(ui.bosses.size) bossRow.appendChild(el('button',{class:'ghost',style:'font-size:12px;padding:3px 8px',onClick:()=>{ui.bosses=new Set();saveFilters();renderAll();}},'clear'));
+
+  host.appendChild(tierRow); host.appendChild(typeRow); host.appendChild(catRow); host.appendChild(bossRow); host.appendChild(ctrl);
 }
 
 function bossId(name){ return 'boss-'+name.replace(/[^a-z0-9]+/gi,'-'); }
@@ -627,12 +649,14 @@ function bossTaskList(g, shown, host){
   if(!showHeads){ for(const t of shown) host.appendChild(taskRow(t)); return; }
   let ki=0;
   for(const k of ordered){
-    const tasks=sub.get(k); let label;
-    if(k==='kc') label=`Kill-count grind · ≈${g.ladder} kill${g.ladder!==1?'s':''}`;
-    else if(k==='x') label='Other';
-    else { ki++; label=`Kill ${ki} · ${tasks.length} task${tasks.length>1?'s':''}`+(tasks.length>1?' in one kill':''); }
-    host.appendChild(el('div',{class:'killhead'}, label));
-    for(const t of tasks) host.appendChild(taskRow(t));
+    const tasks=sub.get(k); let main, subl;
+    if(k==='kc'){ main='Kill-count grind'; subl=`≈${g.ladder} kill${g.ladder!==1?'s':''}`; }
+    else if(k==='x'){ main='Other'; subl=`${tasks.length} task${tasks.length>1?'s':''}`; }
+    else { ki++; main='Kill '+ki; subl=`${tasks.length} task${tasks.length>1?'s':''}`+(tasks.length>1?' · one sitting':''); }
+    const sec=el('div',{class:'killgroup'});
+    sec.appendChild(el('div',{class:'killhead'},[el('span',{class:'khn'},main), el('span',{class:'khsub'},subl)]));
+    for(const t of tasks) sec.appendChild(taskRow(t));
+    host.appendChild(sec);
   }
 }
 
